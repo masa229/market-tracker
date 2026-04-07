@@ -1,4 +1,4 @@
-package comment;
+package app.equityinsight.comment;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 

@@ -1,4 +1,4 @@
-package taskplanner.app.config;
+package app.equityinsight.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,6 @@
-package watchlist;
+package app.equityinsight.watchlist;
 
-import stock.Stock;
+import app.equityinsight.stock.Stock;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;

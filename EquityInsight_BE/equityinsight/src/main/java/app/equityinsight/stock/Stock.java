@@ -1,6 +1,6 @@
-package stock;
+package app.equityinsight.stock;
 
-import comment.Comment;
+import app.equityinsight.comment.Comment;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
