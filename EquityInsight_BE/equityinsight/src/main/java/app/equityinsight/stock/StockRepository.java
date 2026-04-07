@@ -1,8 +1,8 @@
-package app.equityinsight.comment;
+package app.equityinsight.stock;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CommentRepository extends JpaRepository<Comment, Long> {
+public interface StockRepository extends JpaRepository<Stock, Long> {
 }
