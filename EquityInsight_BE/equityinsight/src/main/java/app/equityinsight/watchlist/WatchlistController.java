@@ -38,7 +38,7 @@ public class WatchlistController {
     }
 
     @PatchMapping("/{id}")
-    public WatchlistDto updateTitle(@PathVariable Long id, String title) {
+    public WatchlistDto updateTitle(@PathVariable Long id, @RequestBody String title) {
         return watchlistService.updateTitle(id, title);
     }
 }

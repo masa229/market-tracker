@@ -2,9 +2,10 @@ package app.equityinsight.comment;
 
 import app.equityinsight.comment.dto.CommentDto;
 import app.equityinsight.comment.dto.CreateCommentDto;
+import app.equityinsight.exception.CommentNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class CommentService {
@@ -18,8 +19,20 @@ public class CommentService {
     }
 
     public CommentDto createComment(CreateCommentDto dto) {
-        Comment comment = new Comment(dto.content(), LocalDateTime.now(), LocalDateTime.now());
+        Comment comment = new Comment(dto.content());
         Comment savedComment = commentRepository.save(comment);
         return commentMapper.toDto(savedComment);
+    }
+
+    public CommentDto updateContent(Long id, String content) {
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
+        comment.setContent(content);
+        commentRepository.save(comment);
+        return commentMapper.toDto(comment);
+    }
+
+    public void deleteComment(Long id) {
+        commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(id));
+        commentRepository.deleteById(id);
     }
 }

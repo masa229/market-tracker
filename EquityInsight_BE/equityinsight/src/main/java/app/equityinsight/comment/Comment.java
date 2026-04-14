@@ -29,8 +29,10 @@ public class Comment {
     protected Comment() {
     }
 
-    public Comment(String content, LocalDateTime creationDate, LocalDateTime lastEditedDate) {
+    public Comment(String content) {
         this.content = content;
+        this.creationDate = LocalDateTime.now();
+        this.lastEditedDate = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -51,6 +53,7 @@ public class Comment {
 
     public void setContent(String content) {
         this.content = content;
+        this.lastEditedDate = LocalDateTime.now();
     }
 
 }
