@@ -1,6 +1,8 @@
 package app.equityinsight.watchlist;
 
+import app.equityinsight.watchlist.dto.WatchlistDto;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,7 +19,12 @@ public class WatchlistController {
     }
 
     @GetMapping
-    public List<Watchlist> getAllWatchlists() {
+    public List<WatchlistDto> getAllWatchlists() {
         return watchlistService.getAllWatchlists();
+    }
+
+    @PostMapping
+    public WatchlistDto createWatchlist() {
+
     }
 }
