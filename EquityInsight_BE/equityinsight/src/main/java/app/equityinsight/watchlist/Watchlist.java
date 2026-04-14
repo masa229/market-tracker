@@ -3,7 +3,7 @@ package app.equityinsight.watchlist;
 import app.equityinsight.stock.Stock;
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "watchlist")
@@ -16,7 +16,8 @@ public class Watchlist {
     @Column(nullable = false)
     private String title;
 
-    private ArrayList<Stock> stocks;
+    @ManyToMany(mappedBy = "watchlist")
+    private List<Stock> stocks;
 
     public Watchlist(String title) {
         this.title = title;
@@ -30,7 +31,7 @@ public class Watchlist {
         return title;
     }
 
-    public ArrayList<Stock> getStocks() {
+    public List<Stock> getStocks() {
         return stocks;
     }
 

@@ -1,9 +1,10 @@
 package app.equityinsight.stock;
 
 import app.equityinsight.comment.Comment;
+import app.equityinsight.watchlist.Watchlist;
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "stock")
@@ -16,7 +17,14 @@ public class Stock {
     @Column(nullable = false)
     private final String tickerSymbol;
 
-    private ArrayList<Comment> comments;
+    @OneToMany(mappedBy = "stock")
+    private List<Comment> comments;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "stock_watchlist",
+            joinColumns = @JoinColumn(name = "watchlist_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "stock_id", referencedColumnName = "id"))
+    private List<Watchlist> watchlists;
 
     public Stock(String tickerSymbol) {
         this.tickerSymbol = tickerSymbol;
@@ -30,7 +38,11 @@ public class Stock {
         return tickerSymbol;
     }
 
-    public ArrayList<Comment> getComments() {
+    public List<Watchlist> getWatchlists() {
+        return watchlists;
+    }
+
+    public List<Comment> getComments() {
         return comments;
     }
 

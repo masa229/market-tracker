@@ -1,4 +1,5 @@
 package app.equityinsight.comment;
+import app.equityinsight.stock.Stock;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -15,6 +16,10 @@ public class Comment {
 
     @Column(nullable = false)
     private LocalDate creationDate;
+
+    @OneToMany
+    @JoinColumn(name="stock_id")
+    private Stock stock;
 
     protected Comment() {
     }
