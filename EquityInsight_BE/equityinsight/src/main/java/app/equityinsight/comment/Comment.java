@@ -1,7 +1,9 @@
 package app.equityinsight.comment;
+
 import app.equityinsight.stock.Stock;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment")
@@ -15,37 +17,40 @@ public class Comment {
     private String content;
 
     @Column(nullable = false)
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
+
+    @Column(nullable = false)
+    private LocalDateTime lastEditedDate;
 
     @OneToMany
-    @JoinColumn(name="stock_id")
+    @JoinColumn(name = "stock_id")
     private Stock stock;
 
     protected Comment() {
     }
 
-    public Comment(String content, String description, LocalDate creationDate) {
+    public Comment(String content, LocalDateTime creationDate, LocalDateTime lastEditedDate) {
         this.content = content;
-        this.creationDate = creationDate;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getTitle() {
+    public String getContent() {
         return content;
     }
 
-    public LocalDate getDueDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public void setTitle(String content) {
+    public LocalDateTime getLastEditedDate() {
+        return lastEditedDate;
+    }
+
+    public void setContent(String content) {
         this.content = content;
     }
 
-    public void setDueDate(LocalDate dueDate) {
-        this.creationDate = dueDate;
-    }
 }

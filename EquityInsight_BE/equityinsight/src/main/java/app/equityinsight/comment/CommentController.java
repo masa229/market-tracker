@@ -1,7 +1,6 @@
 package app.equityinsight.comment;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/comment")
@@ -13,4 +12,15 @@ public class CommentController {
         this.commentService = commentService;
     }
 
+    @GetMapping
+    public void getCommentsByStock() {}
+
+    @PostMapping
+    public void createComment() {}
+
+    @DeleteMapping
+    public void deleteComment() {}
+
+    @PatchMapping
+    public void updateCommentContent() {}
 }

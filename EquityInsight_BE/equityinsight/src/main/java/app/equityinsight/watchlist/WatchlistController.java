@@ -36,4 +36,9 @@ public class WatchlistController {
         return ResponseEntity.noContent().build();
 
     }
+
+    @PatchMapping("/{id}")
+    public WatchlistDto updateTitle(@PathVariable Long id, String title) {
+        return watchlistService.updateTitle(id, title);
+    }
 }

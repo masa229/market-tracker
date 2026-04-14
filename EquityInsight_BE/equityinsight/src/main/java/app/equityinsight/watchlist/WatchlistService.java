@@ -3,7 +3,6 @@ package app.equityinsight.watchlist;
 import app.equityinsight.exception.WatchlistNotFoundException;
 import app.equityinsight.watchlist.dto.CreateWatchlistDto;
 import app.equityinsight.watchlist.dto.WatchlistDto;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +24,8 @@ public class WatchlistService {
 
     public WatchlistDto createWatchlist(CreateWatchlistDto dto) {
         Watchlist watchlist = new Watchlist(dto.title());
-        Watchlist safedWatchlist = watchlistRepository.save(watchlist);
-        return watchlistMapper.toDto(safedWatchlist);
+        Watchlist savedWatchlist = watchlistRepository.save(watchlist);
+        return watchlistMapper.toDto(savedWatchlist);
     }
 
     public void deleteWatchlist(Long id) {
@@ -34,5 +33,12 @@ public class WatchlistService {
             throw new WatchlistNotFoundException(id);
         }
         watchlistRepository.deleteById(id);
+    }
+
+    public WatchlistDto updateTitle(Long id, String title) {
+        Watchlist watchlist = watchlistRepository.findById(id).orElseThrow(() -> new WatchlistNotFoundException(id));
+        watchlist.setTitle(title);
+        watchlistRepository.save(watchlist);
+        return watchlistMapper.toDto(watchlist);
     }
 }
