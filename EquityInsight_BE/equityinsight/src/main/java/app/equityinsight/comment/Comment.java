@@ -22,8 +22,8 @@ public class Comment {
     @Column(nullable = false)
     private LocalDateTime lastEditedDate;
 
-    @OneToMany
-    @JoinColumn(name = "stock_id")
+    @ManyToOne
+    @JoinColumn(name = "stock_id", nullable = false)
     private Stock stock;
 
     protected Comment() {
@@ -51,9 +51,16 @@ public class Comment {
         return lastEditedDate;
     }
 
+    public Stock getStock() {
+        return stock;
+    }
+
     public void setContent(String content) {
         this.content = content;
         this.lastEditedDate = LocalDateTime.now();
     }
 
+    public void setStock(Stock stock) {
+        this.stock = stock;
+    }
 }
