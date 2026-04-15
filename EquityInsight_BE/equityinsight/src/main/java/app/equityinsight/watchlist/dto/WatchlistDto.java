@@ -1,12 +1,12 @@
 package app.equityinsight.watchlist.dto;
 
-import app.equityinsight.stock.Stock;
+import app.equityinsight.stock.dto.StockSummaryDto;
 
-import java.util.List;
+import java.util.Set;
 
 public record WatchlistDto(
         Long id,
         String title,
-        List<Stock> stocks
+        Set<StockSummaryDto> stocks
 ) {
 }

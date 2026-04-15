@@ -1,6 +1,7 @@
 package app.equityinsight.watchlist;
 
 import app.equityinsight.watchlist.dto.CreateWatchlistDto;
+import app.equityinsight.watchlist.dto.UpdateWatchlistDto;
 import app.equityinsight.watchlist.dto.WatchlistDto;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/watchlist")
+@RequestMapping("/watchlists")
 public class WatchlistController {
 
     private final WatchlistService watchlistService;
@@ -31,14 +32,13 @@ public class WatchlistController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteWatchlist(@PathVariable Long id) {
         watchlistService.deleteWatchlist(id);
         return ResponseEntity.noContent().build();
-
     }
 
     @PatchMapping("/{id}")
-    public WatchlistDto updateTitle(@PathVariable Long id, @RequestBody String title) {
-        return watchlistService.updateTitle(id, title);
+    public WatchlistDto updateTitle(@PathVariable Long id, @Valid @RequestBody UpdateWatchlistDto dto) {
+        return watchlistService.updateTitle(id, dto);
     }
 }

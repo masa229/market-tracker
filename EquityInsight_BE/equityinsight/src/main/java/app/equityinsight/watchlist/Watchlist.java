@@ -3,7 +3,8 @@ package app.equityinsight.watchlist;
 import app.equityinsight.stock.Stock;
 import jakarta.persistence.*;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "watchlist")
@@ -16,8 +17,11 @@ public class Watchlist {
     @Column(nullable = false)
     private String title;
 
-    @ManyToMany(mappedBy = "watchlist")
-    private List<Stock> stocks;
+    @ManyToMany(mappedBy = "watchlists")
+    private Set<Stock> stocks = new HashSet<>();
+
+    protected Watchlist() {
+    }
 
     public Watchlist(String title) {
         this.title = title;
@@ -31,7 +35,7 @@ public class Watchlist {
         return title;
     }
 
-    public List<Stock> getStocks() {
+    public Set<Stock> getStocks() {
         return stocks;
     }
 
@@ -40,6 +44,7 @@ public class Watchlist {
     }
 
     public void addStock(Stock stock) {
-        this.stocks.add(stock);
+        stocks.add(stock);
+        stock.getWatchlists().add(this);
     }
 }
