@@ -1,0 +1,11 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-stock-detail-panel-component',
+  imports: [],
+  templateUrl: './stock-detail-panel-component.html',
+  styleUrl: './stock-detail-panel-component.css',
+})
+export class StockDetailPanelComponent {
+
+}
