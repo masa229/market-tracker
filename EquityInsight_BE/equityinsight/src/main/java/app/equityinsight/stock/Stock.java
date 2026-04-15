@@ -4,7 +4,8 @@ import app.equityinsight.comment.Comment;
 import app.equityinsight.watchlist.Watchlist;
 import jakarta.persistence.*;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "stock")
@@ -15,16 +16,21 @@ public class Stock {
     private Long id;
 
     @Column(nullable = false)
-    private final String tickerSymbol;
+    private String tickerSymbol;
 
-    @OneToMany(mappedBy = "stock")
-    private List<Comment> comments;
+    @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Comment> comments = new HashSet<>();
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "stock_watchlist",
-            joinColumns = @JoinColumn(name = "watchlist_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "stock_id", referencedColumnName = "id"))
-    private List<Watchlist> watchlists;
+    @ManyToMany
+    @JoinTable(
+            name = "stock_watchlist",
+            joinColumns = @JoinColumn(name = "stock_id"),
+            inverseJoinColumns = @JoinColumn(name = "watchlist_id")
+    )
+    private Set<Watchlist> watchlists = new HashSet<>();
+
+    protected Stock() {
+    }
 
     public Stock(String tickerSymbol) {
         this.tickerSymbol = tickerSymbol;
@@ -38,15 +44,16 @@ public class Stock {
         return tickerSymbol;
     }
 
-    public List<Watchlist> getWatchlists() {
+    public Set<Watchlist> getWatchlists() {
         return watchlists;
     }
 
-    public List<Comment> getComments() {
+    public Set<Comment> getComments() {
         return comments;
     }
 
     public void addComment(Comment comment) {
-        this.comments.add(comment);
+        comments.add(comment);
+        comment.setStock(this);
     }
 }
