@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WatchlistPanelComponent } from './watchlist-panel-component';
+import { WatchlistPanelComponent } from './watchlist-panel.component';
 
 describe('WatchlistPanelComponent', () => {
   let component: WatchlistPanelComponent;

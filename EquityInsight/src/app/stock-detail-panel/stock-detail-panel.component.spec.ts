@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { StockDetailPanelComponent } from './stock-detail-panel-component';
+import { StockDetailPanelComponent } from './stock-detail-panel.component';
 
 describe('StockDetailPanelComponent', () => {
   let component: StockDetailPanelComponent;
