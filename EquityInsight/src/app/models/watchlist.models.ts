@@ -5,3 +5,11 @@ export interface WatchlistDto {
   title: string;
   stocks: StockSummaryDto[];
 }
+
+export interface CreateWatchlistDto {
+  title: string;
+}
+
+export interface UpdateWatchlistDto {
+  title: string;
+}

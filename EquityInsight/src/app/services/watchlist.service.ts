@@ -1,28 +1,33 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Watchlist, CreateWatchlistDto } from '../models/watchlist.models';
+import { environment } from '../../environments/environment';
+import {
+  WatchlistDto,
+  CreateWatchlistDto,
+  UpdateWatchlistDto
+} from '../models/watchlist.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WatchlistService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/watchlists';
+  private readonly baseUrl = `${environment.apiUrl}/watchlists`;
 
-  getAllWatchlists(): Observable<Watchlist[]> {
-    return this.http.get<Watchlist[]>(this.apiUrl);
+  getAllWatchlists(): Observable<WatchlistDto[]> {
+    return this.http.get<WatchlistDto[]>(this.baseUrl);
   }
 
-  createWatchlist(dto: CreateWatchlistDto): Observable<Watchlist> {
-    return this.http.post<Watchlist>(this.apiUrl, dto);
+  createWatchlist(dto: CreateWatchlistDto): Observable<WatchlistDto> {
+    return this.http.post<WatchlistDto>(this.baseUrl, dto);
   }
 
-  updateWatchlistTitle(id: number, title: string): Observable<Watchlist> {
-    return this.http.patch<Watchlist>(`${this.apiUrl}/${id}`, { title });
+  updateWatchlistTitle(id: number, dto: UpdateWatchlistDto): Observable<WatchlistDto> {
+    return this.http.patch<WatchlistDto>(`${this.baseUrl}/${id}`, dto);
   }
 
   deleteWatchlist(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

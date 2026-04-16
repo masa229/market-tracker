@@ -1,14 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {CommentDto, CreateCommentDto, UpdateCommentDto} from '../models/comment.models';
+import { environment } from '../../environments/environment';
+import {
+  CommentDto,
+  CreateCommentDto,
+  UpdateCommentDto
+} from '../models/comment.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommentService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/comments';
+  private readonly baseUrl = `${environment.apiUrl}/comments`;
 
   getCommentsByStockId(stockId: number): Observable<CommentDto[]> {
     return this.http.get<CommentDto[]>(`${this.baseUrl}/stock/${stockId}`);
