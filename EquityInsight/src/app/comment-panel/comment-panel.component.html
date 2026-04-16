@@ -1,0 +1,46 @@
+<section class="panel">
+  <header class="panel-header">
+    <h2>Comments</h2>
+  </header>
+
+  <ng-container *ngIf="selectedStockId; else noStock">
+    <div class="panel-actions">
+      <textarea
+        [(ngModel)]="newCommentContent"
+        rows="4"
+        placeholder="Write a comment...">
+      </textarea>
+      <button type="button" (click)="createComment()">Add</button>
+    </div>
+
+    <ul class="item-list">
+      <li *ngFor="let comment of comments">
+        <div *ngIf="editingCommentId !== comment.id" class="comment-card">
+          <p>{{ comment.content }}</p>
+          <small>
+            Created: {{ comment.creationDate }}<br />
+            Last edited: {{ comment.lastEditedDate }}
+          </small>
+
+          <div class="row-actions">
+            <button type="button" (click)="startEdit(comment.id, comment.content)">Edit</button>
+            <button type="button" (click)="deleteComment(comment.id)">Delete</button>
+          </div>
+        </div>
+
+        <div *ngIf="editingCommentId === comment.id" class="comment-card">
+          <textarea [(ngModel)]="editedContent" rows="4"></textarea>
+
+          <div class="row-actions">
+            <button type="button" (click)="saveEdit(comment.id)">Save</button>
+            <button type="button" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+
+  <ng-template #noStock>
+    <p>Select a stock first.</p>
+  </ng-template>
+</section>

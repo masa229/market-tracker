@@ -2,6 +2,34 @@
   <header class="panel-header">
     <h2>Stocks</h2>
   </header>
+
+  <ng-container *ngIf="selectedWatchlistId; else noWatchlist">
+    <div class="panel-actions">
+      <input
+        type="text"
+        [(ngModel)]="tickerInput"
+        placeholder="Ticker symbol (e.g. NVDA)" />
+      <button type="button" (click)="addStock()">Add</button>
+    </div>
+
+    <ul class="item-list">
+      <li
+        *ngFor="let stock of stocks"
+        [class.selected]="stock.id === selectedStockId">
+
+        <div class="item-row">
+          <button type="button" class="item-button" (click)="selectStock(stock.id)">
+            {{ stock.tickerSymbol }}
+          </button>
+
+          <div class="row-actions">
+            <button type="button" (click)="removeStock(stock.id)">Remove</button>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+
   <ng-template #noWatchlist>
     <p>Select a watchlist first.</p>
   </ng-template>
