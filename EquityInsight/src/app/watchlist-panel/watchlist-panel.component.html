@@ -1,1 +1,39 @@
-<p>watchlist-panel works!</p>
+<section class="panel">
+  <header class="panel-header">
+    <h2>Watchlists</h2>
+  </header>
+
+  <div class="panel-actions">
+    <input
+      type="text"
+      [(ngModel)]="newTitle"
+      placeholder="New watchlist title" />
+    <button type="button" (click)="createWatchlist()">Create</button>
+  </div>
+
+  <ul class="item-list">
+    <li
+      *ngFor="let watchlist of watchlists"
+      [class.selected]="watchlist.id === selectedWatchlistId">
+
+      <div *ngIf="editingWatchlistId !== watchlist.id" class="item-row">
+        <button type="button" class="item-button" (click)="selectWatchlist(watchlist.id)">
+          {{ watchlist.title }}
+        </button>
+
+        <div class="row-actions">
+          <button type="button" (click)="startEdit(watchlist)">Edit</button>
+          <button type="button" (click)="deleteWatchlist(watchlist.id)">Delete</button>
+        </div>
+      </div>
+
+      <div *ngIf="editingWatchlistId === watchlist.id" class="item-row">
+        <input type="text" [(ngModel)]="editedTitle" />
+        <div class="row-actions">
+          <button type="button" (click)="saveEdit(watchlist.id)">Save</button>
+          <button type="button" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </div>
+    </li>
+  </ul>
+</section>

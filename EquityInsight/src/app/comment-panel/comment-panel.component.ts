@@ -8,5 +8,4 @@ import { Component } from '@angular/core';
   styleUrl: './comment-panel.component.css'
 })
 export class CommentPanelComponent {
-
 }

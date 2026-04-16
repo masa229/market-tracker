@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {CommentDto, CreateCommentDto, UpdateCommentDto} from '../models/comment.model';
+import {CommentDto, CreateCommentDto, UpdateCommentDto} from '../models/comment.models';
 
 @Injectable({
   providedIn: 'root'
