@@ -24,6 +24,7 @@ export class StockService {
   }
 
   registerTicker(ticker: string): Observable<StockDto> {
+    console.log(ticker, "WHATEVER")
     return this.http.post<StockDto>(
       `${this.baseUrl}/register?ticker=${encodeURIComponent(ticker)}`,
       {}

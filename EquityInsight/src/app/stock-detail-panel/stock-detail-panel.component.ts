@@ -2,7 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -13,7 +13,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as echarts from 'echarts';
-import { StockSummaryDto } from '../models/stock.models';
+import {StockSummaryDto} from '../models/stock.models';
+import { StockService } from '../services/stock.service';
+import {Observable, observable} from 'rxjs';
 
 @Component({
   selector: 'app-stock-detail-panel',
@@ -28,6 +30,8 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
 
   @ViewChild('chartRef', { static: true }) chartRef!: ElementRef<HTMLDivElement>;
 
+  private stockService = inject(StockService);
+
   stocks: StockSummaryDto[] = [];
   selectedStockId: number | null = null;
   tickerInput = '';
@@ -36,16 +40,11 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
 
   ngAfterViewInit(): void {
     this.chart = echarts.init(this.chartRef.nativeElement);
-    this.renderChart();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedWatchlistId']) {
-      this.loadStocksForWatchlist();
-    }
-
-    if (this.chart) {
-      this.renderChart();
+    if (changes['selectedWatchlistId'] && this.selectedWatchlistId) {
+      this.loadStocksForWatchlist(this.selectedWatchlistId);
     }
   }
 
@@ -53,62 +52,24 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
     this.chart?.dispose();
   }
 
-  loadStocksForWatchlist(): void {
-    this.selectedStockId = null;
-
-    this.stocks = [
-      { id: 101, tickerSymbol: 'NVDA' },
-      { id: 102, tickerSymbol: 'AAPL' },
-      { id: 103, tickerSymbol: 'MSFT' }
-    ];
+  loadStocksForWatchlist(watchlistId: number): void {
+    this.stockService.getStocksByWatchlistId(watchlistId);
   }
 
   selectStock(stockId: number): void {
     this.selectedStockId = stockId;
     this.stockSelected.emit(stockId);
-    this.renderChart();
   }
 
   addStock(): void {
-    // TODO
+    const ticker = this.tickerInput.trim();
+    if (!ticker) return;
+
+    const observable1 = this.stockService.registerTicker(ticker);
+    console.log(observable1, "TESTEST")
   }
 
   removeStock(id: number): void {
-    // TODO
-  }
 
-  private renderChart(): void {
-    if (!this.chart) return;
-
-    const selectedTicker =
-      this.stocks.find(stock => stock.id === this.selectedStockId)?.tickerSymbol ?? 'NVDA';
-
-    const option: echarts.EChartsOption = {
-      title: {
-        text: `${selectedTicker} price history`,
-        left: 'center'
-      },
-      tooltip: {
-        trigger: 'axis'
-      },
-      xAxis: {
-        type: 'category',
-        data: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']
-      },
-      yAxis: {
-        type: 'value'
-      },
-      series: [
-        {
-          name: selectedTicker,
-          type: 'line',
-          smooth: true,
-          data: [120, 132, 128, 145, 150, 158]
-        }
-      ]
-    };
-
-    this.chart.setOption(option);
-    this.chart.resize();
   }
 }
