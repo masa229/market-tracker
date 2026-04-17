@@ -12,11 +12,11 @@ import java.util.List;
 public class StockService {
 
     private final StockRepository stockRepository;
-    private final StooqService stooqService;
+    private final YahooFinanceService yahooFinanceService;
 
-    public StockService(StockRepository stockRepository, StooqService stooqService) {
+    public StockService(StockRepository stockRepository, YahooFinanceService yahooFinanceService) {
         this.stockRepository = stockRepository;
-        this.stooqService = stooqService;
+        this.yahooFinanceService = yahooFinanceService;
     }
 
     public StockDto getStockById(Long id) {
@@ -40,7 +40,7 @@ public class StockService {
     }
 
     public StockPriceHistoryDto getPriceHistory(String tickerSymbol, String range) {
-        List<PricePointDto> prices = stooqService.getHistoricalPrices(tickerSymbol, range);
+        List<PricePointDto> prices = yahooFinanceService.getHistoricalPrices(tickerSymbol, range);
 
         return new StockPriceHistoryDto(
                 tickerSymbol.toUpperCase(),
