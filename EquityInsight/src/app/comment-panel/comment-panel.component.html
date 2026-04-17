@@ -3,38 +3,42 @@
     <h2>Comments</h2>
   </header>
 
-  <ng-container *ngIf="selectedStockId; else noStock">
+  <ng-container *ngIf="selectedStockId !== null; else noStock">
     <div class="panel-actions">
       <textarea
         [(ngModel)]="newCommentContent"
         rows="4"
-        placeholder="Write a comment...">
-      </textarea>
+        placeholder="Write a comment..."
+      ></textarea>
+
       <button type="button" (click)="createComment()">Add</button>
     </div>
 
     <ul class="item-list">
       <li *ngFor="let comment of comments">
-        <div *ngIf="editingCommentId !== comment.id" class="comment-card">
-          <p>{{ comment.content }}</p>
-          <small>
-            Created: {{ comment.creationDate }}<br />
-            Last edited: {{ comment.lastEditedDate }}
-          </small>
+        <div class="comment-card">
+          <ng-container *ngIf="editingCommentId === comment.id; else viewMode">
+            <textarea [(ngModel)]="editedContent" rows="4"></textarea>
 
-          <div class="row-actions">
-            <button type="button" (click)="startEdit(comment.id, comment.content)">Edit</button>
-            <button type="button" (click)="deleteComment(comment.id)">Delete</button>
-          </div>
-        </div>
+            <div class="row-actions">
+              <button type="button" (click)="saveEdit(comment.id)">Save</button>
+              <button type="button" (click)="cancelEdit()">Cancel</button>
+            </div>
+          </ng-container>
 
-        <div *ngIf="editingCommentId === comment.id" class="comment-card">
-          <textarea [(ngModel)]="editedContent" rows="4"></textarea>
+          <ng-template #viewMode>
+            <p>{{ comment.content }}</p>
 
-          <div class="row-actions">
-            <button type="button" (click)="saveEdit(comment.id)">Save</button>
-            <button type="button" (click)="cancelEdit()">Cancel</button>
-          </div>
+            <small>
+              Created: {{ comment.creationDate | date:'short' }}<br />
+              Last edited: {{ comment.lastEditedDate | date:'short' }}
+            </small>
+
+            <div class="row-actions">
+              <button type="button" (click)="startEdit(comment.id, comment.content)">Edit</button>
+              <button type="button" (click)="deleteComment(comment.id)">Delete</button>
+            </div>
+          </ng-template>
         </div>
       </li>
     </ul>
