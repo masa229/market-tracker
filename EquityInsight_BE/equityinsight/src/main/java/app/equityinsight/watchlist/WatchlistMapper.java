@@ -10,9 +10,13 @@ import java.util.stream.Collectors;
 @Component
 public class WatchlistMapper {
 
+    public StockSummaryDto toStockSummaryDto(app.equityinsight.stock.Stock stock) {
+        return new StockSummaryDto(stock.getId(), stock.getTickerSymbol());
+    }
+
     public WatchlistDto toDto(Watchlist watchlist) {
         Set<StockSummaryDto> stocks = watchlist.getStocks().stream()
-                .map(stock -> new StockSummaryDto(stock.getId(), stock.getTickerSymbol()))
+                .map(this::toStockSummaryDto)
                 .collect(Collectors.toSet());
 
         return new WatchlistDto(

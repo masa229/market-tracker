@@ -56,4 +56,9 @@ public class Stock {
         comments.add(comment);
         comment.setStock(this);
     }
+
+    public void removeWatchlist(Watchlist watchlist) {
+        watchlists.remove(watchlist);
+        watchlist.getStocks().remove(this);
+    }
 }

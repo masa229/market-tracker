@@ -1,6 +1,5 @@
 package app.equityinsight.stock;
 
-import app.equityinsight.stock.dto.StockDto;
 import app.equityinsight.stock.dto.StockPriceHistoryDto;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,27 +7,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/stocks")
 public class StockController {
 
-    private final StockService stockService;
+    private final MockStockDataService mockStockDataService;
 
-    public StockController(StockService stockService) {
-        this.stockService = stockService;
-    }
-
-    @GetMapping("/{id}")
-    public StockDto getStockById(@PathVariable Long id) {
-        return stockService.getStockById(id);
-    }
-
-    @PostMapping("/register")
-    public StockDto findOrCreateByTicker(@RequestParam String ticker) {
-        return stockService.findOrCreateByTicker(ticker);
+    public StockController(MockStockDataService mockStockDataService) {
+        this.mockStockDataService = mockStockDataService;
     }
 
     @GetMapping("/{ticker}/prices")
     public StockPriceHistoryDto getPriceHistory(
             @PathVariable String ticker,
-            @RequestParam String range
+            @RequestParam(defaultValue = "1M") String range
     ) {
-        return stockService.getPriceHistory(ticker, range);
+        return mockStockDataService.getHistoricalPrices(ticker, range);
     }
 }

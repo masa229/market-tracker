@@ -1,10 +1,15 @@
 <div class="dashboard-layout">
   <app-watchlist-panel
-    (watchlistSelected)="onWatchlistSelected($event)">
+    [reloadVersion]="watchlistRefreshVersion"
+    [selectedStockId]="selectedStockId"
+    (watchlistSelected)="onWatchlistSelected($event)"
+    (stockSelected)="onStockSelected($event)">
   </app-watchlist-panel>
 
   <app-stock-detail-panel
-    [selectedWatchlistId]="selectedWatchlistId"
+    [selectedWatchlist]="selectedWatchlist"
+    [selectedStockId]="selectedStockId"
+    (watchlistStocksChanged)="onWatchlistStocksChanged()"
     (stockSelected)="onStockSelected($event)">
   </app-stock-detail-panel>
 

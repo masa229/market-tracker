@@ -20,6 +20,15 @@
   flex: 1;
 }
 
+.status-message {
+  margin: 0 0 1rem;
+  color: #475569;
+}
+
+.status-message.error {
+  color: #b91c1c;
+}
+
 .item-list {
   list-style: none;
   padding: 0;
@@ -28,6 +37,12 @@
 
 .item-list li {
   margin-bottom: 0.5rem;
+}
+
+.watchlist-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .item-row {
@@ -39,11 +54,56 @@
 .item-button {
   flex: 1;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.item-title {
+  font-weight: 600;
 }
 
 .row-actions {
   display: flex;
   gap: 0.25rem;
+}
+
+.stock-dropdown {
+  list-style: none;
+  padding: 0.5rem 0 0 0.75rem;
+  margin: 0;
+  border-left: 1px solid #d4d4d8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.stock-button {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0;
+}
+
+.stock-remove {
+  flex-shrink: 0;
+}
+
+.stock-empty {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.stock-selected .stock-button {
+  font-weight: 700;
 }
 
 .selected .item-button {

@@ -7,6 +7,7 @@ import {
   CreateWatchlistDto,
   UpdateWatchlistDto
 } from '../models/watchlist.models';
+import { StockSummaryDto } from '../models/stock.models';
 
 @Injectable({
   providedIn: 'root'
@@ -29,5 +30,20 @@ export class WatchlistService {
 
   deleteWatchlist(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  getStocksByWatchlistId(watchlistId: number): Observable<StockSummaryDto[]> {
+    return this.http.get<StockSummaryDto[]>(`${this.baseUrl}/${watchlistId}/stocks`);
+  }
+
+  addStockToWatchlist(watchlistId: number, ticker: string): Observable<StockSummaryDto> {
+    return this.http.post<StockSummaryDto>(
+      `${this.baseUrl}/${watchlistId}/stocks?ticker=${encodeURIComponent(ticker)}`,
+      {}
+    );
+  }
+
+  removeStockFromWatchlist(watchlistId: number, stockId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${watchlistId}/stocks/${stockId}`);
   }
 }

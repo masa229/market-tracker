@@ -1,14 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface CommentItem {
-  id: number;
-  stockId: number;
-  content: string;
-  creationDate: string;
-  lastEditedDate: string;
-}
+import { CommentDto, CreateCommentDto, UpdateCommentDto } from '../models/comment.models';
+import { CommentService } from '../services/comment.service';
 
 @Component({
   selector: 'app-comment-panel',
@@ -17,36 +11,36 @@ interface CommentItem {
   templateUrl: './comment-panel.component.html',
   styleUrl: './comment-panel.component.css'
 })
-export class CommentPanelComponent {
+export class CommentPanelComponent implements OnChanges {
   @Input() selectedStockId: number | null = null;
 
+  private readonly commentService = inject(CommentService);
+
+  comments: CommentDto[] = [];
   newCommentContent = '';
   editingCommentId: number | null = null;
   editedContent = '';
+  isSubmitting = false;
+  errorMessage = '';
+  private commentsRequestVersion = 0;
 
-  allComments: CommentItem[] = [
-    {
-      id: 1,
-      stockId: 1,
-      content: 'Interesting stock for long-term growth',
-      creationDate: '2026-04-16T10:00:00',
-      lastEditedDate: '2026-04-16T10:00:00'
-    },
-    {
-      id: 2,
-      stockId: 2,
-      content: 'Looks volatile at the moment',
-      creationDate: '2026-04-16T11:30:00',
-      lastEditedDate: '2026-04-16T11:30:00'
-    }
-  ];
-
-  get comments(): CommentItem[] {
-    if (this.selectedStockId == null) {
-      return [];
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['selectedStockId']) {
+      return;
     }
 
-    return this.allComments.filter(c => c.stockId === this.selectedStockId);
+    this.commentsRequestVersion += 1;
+    this.resetEditState();
+    this.newCommentContent = '';
+    this.errorMessage = '';
+    this.isSubmitting = false;
+
+    if (this.selectedStockId === null) {
+      this.comments = [];
+      return;
+    }
+
+    this.loadComments();
   }
 
   startEdit(id: number, content: string): void {
@@ -59,7 +53,7 @@ export class CommentPanelComponent {
   }
 
   createComment(): void {
-    if (this.selectedStockId == null) {
+    if (this.selectedStockId === null) {
       return;
     }
 
@@ -68,17 +62,36 @@ export class CommentPanelComponent {
       return;
     }
 
-    const timestamp = new Date().toISOString();
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    const requestStockId = this.selectedStockId;
+    const requestVersion = this.commentsRequestVersion;
 
-    this.allComments.unshift({
-      id: this.getNextId(),
-      stockId: this.selectedStockId,
+    const dto: CreateCommentDto = {
       content,
-      creationDate: timestamp,
-      lastEditedDate: timestamp
-    });
+      stockId: requestStockId
+    };
 
-    this.newCommentContent = '';
+    this.commentService.createComment(dto).subscribe({
+      next: comment => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        this.comments = this.sortComments([comment, ...this.comments]);
+        this.newCommentContent = '';
+        this.isSubmitting = false;
+      },
+      error: error => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        console.error('Failed to create comment', error);
+        this.errorMessage = 'Add failed.';
+        this.isSubmitting = false;
+      }
+    });
   }
 
   saveEdit(id: number): void {
@@ -87,23 +100,97 @@ export class CommentPanelComponent {
       return;
     }
 
-    const comment = this.allComments.find(c => c.id === id);
-    if (!comment) {
-      return;
-    }
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    const requestStockId = this.selectedStockId;
+    const requestVersion = this.commentsRequestVersion;
 
-    comment.content = content;
-    comment.lastEditedDate = new Date().toISOString();
+    const dto: UpdateCommentDto = { content };
 
-    this.resetEditState();
+    this.commentService.updateComment(id, dto).subscribe({
+      next: updatedComment => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        this.comments = this.sortComments(
+          this.comments.map(comment =>
+            comment.id === id ? updatedComment : comment
+          )
+        );
+        this.resetEditState();
+        this.isSubmitting = false;
+      },
+      error: error => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        console.error('Failed to update comment', error);
+        this.errorMessage = 'Save failed.';
+        this.isSubmitting = false;
+      }
+    });
   }
 
   deleteComment(id: number): void {
-    this.allComments = this.allComments.filter(c => c.id !== id);
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    const requestStockId = this.selectedStockId;
+    const requestVersion = this.commentsRequestVersion;
 
-    if (this.editingCommentId === id) {
-      this.resetEditState();
+    this.commentService.deleteComment(id).subscribe({
+      next: () => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        this.comments = this.comments.filter(comment => comment.id !== id);
+
+        if (this.editingCommentId === id) {
+          this.resetEditState();
+        }
+
+        this.isSubmitting = false;
+      },
+      error: error => {
+        if (requestStockId !== this.selectedStockId || requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        console.error('Failed to delete comment', error);
+        this.errorMessage = 'Delete failed.';
+        this.isSubmitting = false;
+      }
+    });
+  }
+
+  private loadComments(): void {
+    if (this.selectedStockId === null) {
+      return;
     }
+
+    this.errorMessage = '';
+    const requestVersion = this.commentsRequestVersion;
+
+    this.commentService.getCommentsByStockId(this.selectedStockId).subscribe({
+      next: comments => {
+        if (requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        this.comments = this.sortComments(comments);
+      },
+      error: error => {
+        if (requestVersion !== this.commentsRequestVersion) {
+          return;
+        }
+
+        console.error('Failed to load comments', error);
+        this.errorMessage = 'Load failed.';
+        this.comments = [];
+      }
+    });
   }
 
   private resetEditState(): void {
@@ -111,9 +198,10 @@ export class CommentPanelComponent {
     this.editedContent = '';
   }
 
-  private getNextId(): number {
-    return this.allComments.length
-      ? Math.max(...this.allComments.map(c => c.id)) + 1
-      : 1;
+  private sortComments(comments: CommentDto[]): CommentDto[] {
+    return [...comments].sort(
+      (left, right) =>
+        new Date(right.creationDate).getTime() - new Date(left.creationDate).getTime()
+    );
   }
 }

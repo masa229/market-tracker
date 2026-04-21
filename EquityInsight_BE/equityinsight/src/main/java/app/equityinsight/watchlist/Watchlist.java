@@ -47,4 +47,9 @@ public class Watchlist {
         stocks.add(stock);
         stock.getWatchlists().add(this);
     }
+
+    public void removeStock(Stock stock) {
+        stocks.remove(stock);
+        stock.getWatchlists().remove(this);
+    }
 }

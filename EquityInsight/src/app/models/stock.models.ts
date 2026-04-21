@@ -3,11 +3,6 @@ export interface StockSummaryDto {
   tickerSymbol: string;
 }
 
-export interface StockDto {
-  id: number;
-  tickerSymbol: string;
-}
-
 export interface PricePointDto {
   date: string;
   closePrice: number;

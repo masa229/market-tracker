@@ -1,27 +1,28 @@
 package app.equityinsight.stock;
 
+import app.equityinsight.exception.InvalidTickerException;
 import app.equityinsight.exception.StockNotFoundException;
-import app.equityinsight.stock.dto.PricePointDto;
 import app.equityinsight.stock.dto.StockDto;
 import app.equityinsight.stock.dto.StockPriceHistoryDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class StockService {
 
-    private final StockRepository stockRepository;
-    private final YahooFinanceService yahooFinanceService;
+    private static final Logger log = LoggerFactory.getLogger(StockService.class);
 
-    public StockService(StockRepository stockRepository, YahooFinanceService yahooFinanceService) {
+    private final StockRepository stockRepository;
+    private final MockStockDataService mockStockDataService;
+
+    public StockService(StockRepository stockRepository, MockStockDataService mockStockDataService) {
         this.stockRepository = stockRepository;
-        this.yahooFinanceService = yahooFinanceService;
+        this.mockStockDataService = mockStockDataService;
     }
 
     public StockDto getStockById(Long id) {
-        Stock stock = stockRepository.findById(id)
-                .orElseThrow(() -> new StockNotFoundException(id));
+        Stock stock = getStockEntityById(id);
 
         return new StockDto(
                 stock.getId(),
@@ -29,23 +30,47 @@ public class StockService {
         );
     }
 
-    public StockDto findOrCreateByTicker(String tickerSymbol) {
-        return stockRepository.findByTickerSymbolIgnoreCase(tickerSymbol)
-                .map(stock -> new StockDto(stock.getId(), stock.getTickerSymbol()))
-                .orElseGet(() -> {
-                    Stock stock = new Stock(tickerSymbol.toUpperCase());
-                    Stock saved = stockRepository.save(stock);
-                    return new StockDto(saved.getId(), saved.getTickerSymbol());
+    public StockDto findOrCreateByTicker(String rawTickerSymbol) {
+        Stock stock = findOrCreateEntityByTicker(rawTickerSymbol);
+        return new StockDto(stock.getId(), stock.getTickerSymbol());
+    }
+
+    public StockPriceHistoryDto getPriceHistory(String rawTickerSymbol, String range) {
+        String tickerSymbol = normalizeAndValidateTicker(rawTickerSymbol);
+        return mockStockDataService.getHistoricalPrices(tickerSymbol, range);
+    }
+
+    public Stock getStockEntityById(Long id) {
+        return stockRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Stock lookup failed for id={}", id);
+                    return new StockNotFoundException(id);
                 });
     }
 
-    public StockPriceHistoryDto getPriceHistory(String tickerSymbol, String range) {
-        List<PricePointDto> prices = yahooFinanceService.getHistoricalPrices(tickerSymbol, range);
+    public Stock findOrCreateEntityByTicker(String rawTickerSymbol) {
+        String tickerSymbol = normalizeAndValidateTicker(rawTickerSymbol);
 
-        return new StockPriceHistoryDto(
-                tickerSymbol.toUpperCase(),
-                range,
-                prices
-        );
+        return stockRepository.findByTickerSymbolIgnoreCase(tickerSymbol)
+                .orElseGet(() -> {
+                    Stock stock = new Stock(tickerSymbol);
+                    return stockRepository.save(stock);
+                });
+    }
+
+    private String normalizeAndValidateTicker(String rawTickerSymbol) {
+        if (rawTickerSymbol == null) {
+            log.warn("Ticker validation failed because the ticker was null");
+            throw new InvalidTickerException("null");
+        }
+
+        String tickerSymbol = rawTickerSymbol.trim().toUpperCase();
+
+        if (!tickerSymbol.matches("^[A-Z0-9]{1,4}$")) {
+            log.warn("Ticker validation failed for ticker='{}'", rawTickerSymbol);
+            throw new InvalidTickerException(rawTickerSymbol);
+        }
+
+        return tickerSymbol;
     }
 }

@@ -3,28 +3,61 @@
     <h2>Watchlists</h2>
   </header>
 
+  <p *ngIf="errorMessage" class="status-message error">{{ errorMessage }}</p>
+
   <div class="panel-actions">
     <input
       type="text"
       [(ngModel)]="newTitle"
-      placeholder="New watchlist title" />
-    <button type="button" (click)="createWatchlist()">Create</button>
+      placeholder="Watchlist" />
+    <button type="button" (click)="createWatchlist()">Add</button>
   </div>
 
-  <ul class="item-list">
+  <p *ngIf="watchlists.length === 0" class="status-message">
+    No watchlists
+  </p>
+
+  <ul *ngIf="watchlists.length > 0" class="item-list">
     <li
       *ngFor="let watchlist of watchlists"
       [class.selected]="watchlist.id === selectedWatchlistId">
 
-      <div *ngIf="editingWatchlistId !== watchlist.id" class="item-row">
-        <button type="button" class="item-button" (click)="selectWatchlist(watchlist.id)">
-          {{ watchlist.title }}
-        </button>
+      <div *ngIf="editingWatchlistId !== watchlist.id" class="watchlist-card">
+        <div class="item-row">
+          <button type="button" class="item-button" (click)="selectWatchlist(watchlist)">
+            <span class="item-title">{{ watchlist.title }}</span>
+          </button>
 
-        <div class="row-actions">
-          <button type="button" (click)="startEdit(watchlist)">Edit</button>
-          <button type="button" (click)="deleteWatchlist(watchlist.id)">Delete</button>
+          <div class="row-actions">
+            <button type="button" (click)="startEdit(watchlist)">Edit</button>
+            <button type="button" (click)="deleteWatchlist(watchlist.id)">Delete</button>
+          </div>
         </div>
+
+        <ul *ngIf="watchlist.id === selectedWatchlistId" class="stock-dropdown">
+          <li *ngIf="watchlist.stocks.length === 0" class="stock-empty">
+            No tickers
+          </li>
+
+          <li *ngFor="let stock of watchlist.stocks" [class.stock-selected]="stock.id === selectedStockId">
+            <div class="stock-row">
+              <button
+                type="button"
+                class="stock-button"
+                (click)="selectStock(watchlist, stock.id)">
+                {{ stock.tickerSymbol }}
+              </button>
+
+              <button
+                type="button"
+                class="stock-remove"
+                [disabled]="removingStockId === stock.id"
+                (click)="removeStock(watchlist, stock.id)">
+                Remove
+              </button>
+            </div>
+          </li>
+        </ul>
       </div>
 
       <div *ngIf="editingWatchlistId === watchlist.id" class="item-row">

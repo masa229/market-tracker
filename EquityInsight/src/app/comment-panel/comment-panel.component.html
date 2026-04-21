@@ -3,26 +3,47 @@
     <h2>Comments</h2>
   </header>
 
+  <p *ngIf="errorMessage" class="status-message error">{{ errorMessage }}</p>
+
   <ng-container *ngIf="selectedStockId !== null; else noStock">
     <div class="panel-actions">
       <textarea
         [(ngModel)]="newCommentContent"
         rows="4"
-        placeholder="Write a comment..."
+        [disabled]="isSubmitting"
+        placeholder="Comment"
       ></textarea>
 
-      <button type="button" (click)="createComment()">Add</button>
+      <button
+        type="button"
+        [disabled]="isSubmitting || !newCommentContent.trim()"
+        (click)="createComment()">
+        Add
+      </button>
     </div>
 
-    <ul class="item-list">
+    <p *ngIf="comments.length === 0" class="status-message">
+      No comments
+    </p>
+
+    <ul *ngIf="comments.length > 0" class="item-list">
       <li *ngFor="let comment of comments">
         <div class="comment-card">
           <ng-container *ngIf="editingCommentId === comment.id; else viewMode">
-            <textarea [(ngModel)]="editedContent" rows="4"></textarea>
+            <textarea
+              [(ngModel)]="editedContent"
+              rows="4"
+              [disabled]="isSubmitting">
+            </textarea>
 
             <div class="row-actions">
-              <button type="button" (click)="saveEdit(comment.id)">Save</button>
-              <button type="button" (click)="cancelEdit()">Cancel</button>
+              <button
+                type="button"
+                [disabled]="isSubmitting || !editedContent.trim()"
+                (click)="saveEdit(comment.id)">
+                Save
+              </button>
+              <button type="button" [disabled]="isSubmitting" (click)="cancelEdit()">Cancel</button>
             </div>
           </ng-container>
 
@@ -30,13 +51,23 @@
             <p>{{ comment.content }}</p>
 
             <small>
-              Created: {{ comment.creationDate | date:'short' }}<br />
-              Last edited: {{ comment.lastEditedDate | date:'short' }}
+              Created {{ comment.creationDate | date:'short' }}<br />
+              Edited {{ comment.lastEditedDate | date:'short' }}
             </small>
 
             <div class="row-actions">
-              <button type="button" (click)="startEdit(comment.id, comment.content)">Edit</button>
-              <button type="button" (click)="deleteComment(comment.id)">Delete</button>
+              <button
+                type="button"
+                [disabled]="isSubmitting"
+                (click)="startEdit(comment.id, comment.content)">
+                Edit
+              </button>
+              <button
+                type="button"
+                [disabled]="isSubmitting"
+                (click)="deleteComment(comment.id)">
+                Delete
+              </button>
             </div>
           </ng-template>
         </div>
@@ -45,6 +76,6 @@
   </ng-container>
 
   <ng-template #noStock>
-    <p>Select a stock first.</p>
+    <p class="status-message">Select stock</p>
   </ng-template>
 </section>

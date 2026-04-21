@@ -3,17 +3,34 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  HostListener,
   Input,
   OnChanges,
   OnDestroy,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import * as echarts from 'echarts';
-import { StockSummaryDto } from '../models/stock.models';
+import { LineChart } from 'echarts/charts';
+import { GridComponent, TitleComponent, TooltipComponent } from 'echarts/components';
+import {
+  ECharts,
+  EChartsCoreOption,
+  init as initChart,
+  use
+} from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { StockPriceHistoryDto } from '../models/stock.models';
+import { WatchlistDto } from '../models/watchlist.models';
+import { StockService } from '../services/stock.service';
+import { WatchlistService } from '../services/watchlist.service';
+
+type StockRange = '1M' | '3M' | '6M' | '1Y';
+
+use([LineChart, GridComponent, TitleComponent, TooltipComponent, CanvasRenderer]);
 
 @Component({
   selector: 'app-stock-detail-panel',
@@ -23,29 +40,49 @@ import { StockSummaryDto } from '../models/stock.models';
   styleUrl: './stock-detail-panel.component.css'
 })
 export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDestroy {
-  @Input() selectedWatchlistId: number | null = null;
-  @Output() stockSelected = new EventEmitter<number>();
+  @Input() selectedWatchlist: WatchlistDto | null = null;
+  @Input() selectedStockId: number | null = null;
+  @Output() stockSelected = new EventEmitter<number | null>();
+  @Output() watchlistStocksChanged = new EventEmitter<void>();
 
   @ViewChild('chartRef', { static: true }) chartRef!: ElementRef<HTMLDivElement>;
 
-  stocks: StockSummaryDto[] = [];
-  selectedStockId: number | null = null;
-  tickerInput = '';
+  private readonly stockService = inject(StockService);
+  private readonly watchlistService = inject(WatchlistService);
 
-  private chart: echarts.ECharts | null = null;
+  readonly supportedRanges: readonly StockRange[] = ['1M', '3M', '6M', '1Y'];
+
+  selectedRange: StockRange = '1M';
+  tickerInput = '';
+  isMutatingStocks = false;
+  stockActionErrorMessage = '';
+  isChartLoading = false;
+  chartErrorMessage = '';
+
+  private chart: ECharts | null = null;
+  private chartRequestVersion = 0;
+
+  get selectedStock() {
+    return this.selectedWatchlist?.stocks.find(stock => stock.id === this.selectedStockId) ?? null;
+  }
+
+  get isTickerInputValid(): boolean {
+    return /^[A-Z0-9]{1,4}$/.test(this.tickerInput);
+  }
 
   ngAfterViewInit(): void {
-    this.chart = echarts.init(this.chartRef.nativeElement);
-    this.renderChart();
+    this.chart = initChart(this.chartRef.nativeElement);
+    this.syncChartState();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedWatchlistId']) {
-      this.loadStocksForWatchlist();
+    if (changes['selectedWatchlist']) {
+      this.tickerInput = '';
+      this.stockActionErrorMessage = '';
     }
 
-    if (this.chart) {
-      this.renderChart();
+    if (changes['selectedWatchlist'] || changes['selectedStockId']) {
+      this.syncChartState();
     }
   }
 
@@ -53,39 +90,129 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
     this.chart?.dispose();
   }
 
-  loadStocksForWatchlist(): void {
-    this.selectedStockId = null;
-
-    this.stocks = [
-      { id: 101, tickerSymbol: 'NVDA' },
-      { id: 102, tickerSymbol: 'AAPL' },
-      { id: 103, tickerSymbol: 'MSFT' }
-    ];
-  }
-
-  selectStock(stockId: number): void {
-    this.selectedStockId = stockId;
-    this.stockSelected.emit(stockId);
-    this.renderChart();
+  @HostListener('window:resize')
+  onResize(): void {
+    this.chart?.resize();
   }
 
   addStock(): void {
-    // TODO
+    if (!this.selectedWatchlist || !this.isTickerInputValid) {
+      return;
+    }
+
+    this.isMutatingStocks = true;
+    this.stockActionErrorMessage = '';
+
+    this.watchlistService.addStockToWatchlist(this.selectedWatchlist.id, this.tickerInput).subscribe({
+      next: addedStock => {
+        this.tickerInput = '';
+        this.stockSelected.emit(addedStock.id);
+        this.watchlistStocksChanged.emit();
+        this.isMutatingStocks = false;
+      },
+      error: error => {
+        console.error('Failed to add stock to watchlist', error);
+        this.stockActionErrorMessage = 'Add failed.';
+        this.isMutatingStocks = false;
+      }
+    });
   }
 
-  removeStock(id: number): void {
-    // TODO
+  changeRange(range: StockRange): void {
+    if (this.selectedRange === range) {
+      return;
+    }
+
+    this.selectedRange = range;
+    this.loadChartData();
   }
 
-  private renderChart(): void {
-    if (!this.chart) return;
+  onTickerInputChange(value: string): void {
+    this.tickerInput = value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 4);
 
-    const selectedTicker =
-      this.stocks.find(stock => stock.id === this.selectedStockId)?.tickerSymbol ?? 'NVDA';
+    if (this.stockActionErrorMessage) {
+      this.stockActionErrorMessage = '';
+    }
+  }
 
-    const option: echarts.EChartsOption = {
+  private syncChartState(): void {
+    if (!this.chart) {
+      return;
+    }
+
+    if (!this.selectedWatchlist) {
+      this.chartRequestVersion += 1;
+      this.isChartLoading = false;
+      this.chartErrorMessage = '';
+      this.renderEmptyChart('');
+      return;
+    }
+
+    if (!this.selectedStock) {
+      this.chartRequestVersion += 1;
+      this.isChartLoading = false;
+      this.chartErrorMessage = '';
+      this.renderEmptyChart('');
+      return;
+    }
+
+    this.loadChartData();
+  }
+
+  private loadChartData(): void {
+    if (!this.chart) {
+      return;
+    }
+
+    if (!this.selectedStock) {
+      this.renderEmptyChart('');
+      return;
+    }
+
+    this.isChartLoading = true;
+    this.chartErrorMessage = '';
+    const requestVersion = ++this.chartRequestVersion;
+    const selectedTicker = this.selectedStock.tickerSymbol;
+
+    this.stockService.getPriceHistory(selectedTicker, this.selectedRange).subscribe({
+      next: response => {
+        if (requestVersion !== this.chartRequestVersion) {
+          return;
+        }
+
+        this.isChartLoading = false;
+        this.renderChart(response);
+      },
+      error: error => {
+        if (requestVersion !== this.chartRequestVersion) {
+          return;
+        }
+
+        console.error('Failed to load price history', error);
+        this.isChartLoading = false;
+        this.chartErrorMessage = 'Load failed.';
+        this.renderEmptyChart(`${selectedTicker} unavailable`);
+      }
+    });
+  }
+
+  private renderChart(response: StockPriceHistoryDto): void {
+    if (!this.chart) {
+      return;
+    }
+
+    const xAxisData = response.prices.map(point =>
+      new Date(point.date).toLocaleDateString()
+    );
+
+    const seriesData = response.prices.map(point => point.closePrice);
+
+    const option: EChartsCoreOption = {
       title: {
-        text: `${selectedTicker} price history`,
+        text: `${response.tickerSymbol} history`,
         left: 'center'
       },
       tooltip: {
@@ -93,22 +220,49 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
       },
       xAxis: {
         type: 'category',
-        data: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6']
+        data: xAxisData
       },
       yAxis: {
         type: 'value'
       },
       series: [
         {
-          name: selectedTicker,
+          name: response.tickerSymbol,
           type: 'line',
           smooth: true,
-          data: [120, 132, 128, 145, 150, 158]
+          data: seriesData
         }
       ]
     };
 
-    this.chart.setOption(option);
+    this.chart.setOption(option, true);
+    this.chart.resize();
+  }
+
+  private renderEmptyChart(title: string): void {
+    if (!this.chart) {
+      return;
+    }
+
+    const option: EChartsCoreOption = {
+      title: {
+        text: title,
+        left: 'center',
+        top: 'center'
+      },
+      xAxis: {
+        type: 'category',
+        show: false,
+        data: []
+      },
+      yAxis: {
+        type: 'value',
+        show: false
+      },
+      series: []
+    };
+
+    this.chart.setOption(option, true);
     this.chart.resize();
   }
 }

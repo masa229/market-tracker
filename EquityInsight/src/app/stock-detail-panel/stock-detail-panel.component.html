@@ -1,39 +1,58 @@
 <section class="panel">
-  <header class="panel-header">
-    <h2>Stocks</h2>
+  <header *ngIf="selectedStockId !== null" class="panel-header">
+    <h2>Stock</h2>
   </header>
 
-  <div class="panel-actions">
+  <p *ngIf="stockActionErrorMessage" class="status-message error">{{ stockActionErrorMessage }}</p>
+  <p *ngIf="chartErrorMessage" class="status-message error">{{ chartErrorMessage }}</p>
+
+  <div *ngIf="selectedWatchlist" class="panel-actions">
     <input
       type="text"
-      [(ngModel)]="tickerInput"
-      placeholder="Ticker symbol (e.g. NVDA)" />
-    <button type="button" (click)="addStock()">Add</button>
+      [ngModel]="tickerInput"
+      (ngModelChange)="onTickerInputChange($event)"
+      maxlength="4"
+      [disabled]="isMutatingStocks"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Ticker" />
+    <button
+      type="button"
+      [disabled]="isMutatingStocks || !isTickerInputValid"
+      (click)="addStock()">
+      Add
+    </button>
   </div>
 
-  <ul class="item-list">
-    <li
-      *ngFor="let stock of stocks"
-      [class.selected]="stock.id === selectedStockId">
+  <p *ngIf="selectedWatchlist && tickerInput && !isTickerInputValid" class="status-message">
+    Use 1-4 letters or numbers
+  </p>
 
-      <div class="item-row">
-        <button type="button" class="item-button" (click)="selectStock(stock.id)">
-          {{ stock.tickerSymbol }}
-        </button>
-
-        <div class="row-actions">
-          <button type="button" (click)="removeStock(stock.id)">Remove</button>
-        </div>
+  <section class="graph-card" [class.graph-card-empty]="selectedStockId === null">
+    <div *ngIf="selectedStockId !== null" class="graph-card-header">
+      <div>
+        <h3>{{ selectedStock?.tickerSymbol ?? 'Price history' }}</h3>
       </div>
-    </li>
-  </ul>
 
-  <section class="graph-card">
-    <div class="graph-card-header">
-      <h3>Chart</h3>
-      <span class="graph-range">Mocked</span>
+      <div class="range-selector">
+        <button
+          *ngFor="let range of supportedRanges"
+          type="button"
+          class="range-button"
+          [class.active]="range === selectedRange"
+          [disabled]="selectedStockId === null"
+          (click)="changeRange(range)">
+          {{ range }}
+        </button>
+      </div>
     </div>
 
-    <div #chartRef class="chart-container"></div>
+    <p *ngIf="isChartLoading && selectedStockId !== null" class="status-message">Loading...</p>
+
+    <div *ngIf="selectedStockId === null" class="welcome-state">
+      Welcome to equity insight
+    </div>
+
+    <div #chartRef class="chart-container" [class.chart-container-empty]="selectedStockId === null"></div>
   </section>
 </section>

@@ -1,5 +1,6 @@
 package app.equityinsight.watchlist;
 
+import app.equityinsight.stock.dto.StockSummaryDto;
 import app.equityinsight.watchlist.dto.CreateWatchlistDto;
 import app.equityinsight.watchlist.dto.UpdateWatchlistDto;
 import app.equityinsight.watchlist.dto.WatchlistDto;
@@ -25,15 +26,35 @@ public class WatchlistController {
         return watchlistService.getAllWatchlists();
     }
 
+    @GetMapping("/{id}/stocks")
+    public List<StockSummaryDto> getStocksByWatchlistId(@PathVariable Long id) {
+        return watchlistService.getStocksByWatchlistId(id);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public WatchlistDto createWatchlist(@Valid @RequestBody CreateWatchlistDto dto) {
         return watchlistService.createWatchlist(dto);
     }
 
+    @PostMapping("/{id}/stocks")
+    @ResponseStatus(HttpStatus.CREATED)
+    public StockSummaryDto addStockToWatchlist(@PathVariable Long id, @RequestParam String ticker) {
+        return watchlistService.addStockToWatchlist(id, ticker);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteWatchlist(@PathVariable Long id) {
         watchlistService.deleteWatchlist(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{watchlistId}/stocks/{stockId}")
+    public ResponseEntity<Void> removeStockFromWatchlist(
+            @PathVariable Long watchlistId,
+            @PathVariable Long stockId
+    ) {
+        watchlistService.removeStockFromWatchlist(watchlistId, stockId);
         return ResponseEntity.noContent().build();
     }
 

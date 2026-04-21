@@ -17,6 +17,15 @@
   margin-bottom: 1rem;
 }
 
+.status-message {
+  margin: 0 0 1rem;
+  color: #475569;
+}
+
+.status-message.error {
+  color: #b91c1c;
+}
+
 .comment-card {
   border: 1px solid #ddd;
   border-radius: 10px;
