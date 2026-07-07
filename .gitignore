@@ -1,0 +1,10 @@
+/.codex/logs/backend.err.log
+/.codex/logs/backend.out.log
+/.idea/equity-insight.iml
+/.codex/logs/frontend.err.log
+/.codex/logs/frontend.out.log
+/.idea/misc.xml
+/EquityInsight_BE/equityinsight/src/test/java/app/equityinsight/stock/MockStockDataServiceTest.java
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/workspace.xml

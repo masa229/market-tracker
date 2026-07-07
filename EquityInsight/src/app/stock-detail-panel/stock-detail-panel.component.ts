@@ -13,6 +13,7 @@ import {
   inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { LineChart } from 'echarts/charts';
 import { GridComponent, TitleComponent, TooltipComponent } from 'echarts/components';
@@ -54,6 +55,7 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
 
   selectedRange: StockRange = '1M';
   tickerInput = '';
+  alphaVantageApiKey = '';
   isMutatingStocks = false;
   stockActionErrorMessage = '';
   isChartLoading = false;
@@ -68,6 +70,10 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
 
   get isTickerInputValid(): boolean {
     return /^[A-Z0-9]{1,4}$/.test(this.tickerInput);
+  }
+
+  get hasAlphaVantageApiKey(): boolean {
+    return this.alphaVantageApiKey.trim().length > 0;
   }
 
   ngAfterViewInit(): void {
@@ -138,6 +144,14 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
     }
   }
 
+  onAlphaVantageApiKeyChange(value: string): void {
+    this.alphaVantageApiKey = value.trim();
+
+    if (this.chartErrorMessage) {
+      this.chartErrorMessage = '';
+    }
+  }
+
   private syncChartState(): void {
     if (!this.chart) {
       return;
@@ -177,7 +191,11 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
     const requestVersion = ++this.chartRequestVersion;
     const selectedTicker = this.selectedStock.tickerSymbol;
 
-    this.stockService.getPriceHistory(selectedTicker, this.selectedRange).subscribe({
+    this.stockService.getPriceHistory(
+      selectedTicker,
+      this.selectedRange,
+      this.alphaVantageApiKey
+    ).subscribe({
       next: response => {
         if (requestVersion !== this.chartRequestVersion) {
           return;
@@ -193,10 +211,24 @@ export class StockDetailPanelComponent implements OnChanges, AfterViewInit, OnDe
 
         console.error('Failed to load price history', error);
         this.isChartLoading = false;
-        this.chartErrorMessage = 'Load failed.';
+        this.chartErrorMessage = this.extractChartErrorMessage(error);
         this.renderEmptyChart(`${selectedTicker} unavailable`);
       }
     });
+  }
+
+  private extractChartErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Load failed.';
+    }
+
+    const backendMessage = error.error?.detail ?? error.error?.message;
+
+    if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+      return backendMessage;
+    }
+
+    return 'Load failed.';
   }
 
   private renderChart(response: StockPriceHistoryDto): void {

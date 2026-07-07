@@ -50,7 +50,22 @@
     <p *ngIf="isChartLoading && selectedStockId !== null" class="status-message">Loading...</p>
 
     <div *ngIf="selectedStockId === null" class="welcome-state">
-      Welcome to equity insight
+      <div class="welcome-content">
+        <h3>Welcome to equity insight</h3>
+        <p class="welcome-copy">
+          Enter an Alpha Vantage API key to load live price history.
+          {{ hasAlphaVantageApiKey ? 'Live requests are ready.' : 'Leave it empty to keep using mock data.' }}
+        </p>
+        <label class="welcome-label" for="alpha-vantage-api-key">Alpha Vantage API key</label>
+        <input
+          id="alpha-vantage-api-key"
+          type="text"
+          [ngModel]="alphaVantageApiKey"
+          (ngModelChange)="onAlphaVantageApiKeyChange($event)"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Enter API key" />
+      </div>
     </div>
 
     <div #chartRef class="chart-container" [class.chart-container-empty]="selectedStockId === null"></div>

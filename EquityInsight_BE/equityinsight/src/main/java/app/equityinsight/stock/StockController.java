@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Stocks", description = "Stock price history endpoints")
 public class StockController {
 
+    private static final String ALPHA_VANTAGE_API_KEY_HEADER = "X-Alpha-Vantage-Api-Key";
+
     private final MockStockDataService mockStockDataService;
 
     public StockController(MockStockDataService mockStockDataService) {
@@ -23,8 +25,10 @@ public class StockController {
             @Parameter(description = "Ticker symbol, 1 to 4 letters or numbers")
             @PathVariable String ticker,
             @Parameter(description = "Price history range such as 1M, 3M, 6M, or 1Y")
-            @RequestParam(defaultValue = "1M") String range
+            @RequestParam(defaultValue = "1M") String range,
+            @Parameter(description = "Alpha Vantage API key used for live data requests")
+            @RequestHeader(value = ALPHA_VANTAGE_API_KEY_HEADER, required = false) String alphaVantageApiKey
     ) {
-        return mockStockDataService.getHistoricalPrices(ticker, range);
+        return mockStockDataService.getHistoricalPrices(ticker, range, alphaVantageApiKey);
     }
 }

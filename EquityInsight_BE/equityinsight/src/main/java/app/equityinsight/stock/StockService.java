@@ -35,9 +35,9 @@ public class StockService {
         return new StockDto(stock.getId(), stock.getTickerSymbol());
     }
 
-    public StockPriceHistoryDto getPriceHistory(String rawTickerSymbol, String range) {
+    public StockPriceHistoryDto getPriceHistory(String rawTickerSymbol, String range, String alphaVantageApiKey) {
         String tickerSymbol = normalizeAndValidateTicker(rawTickerSymbol);
-        return mockStockDataService.getHistoricalPrices(tickerSymbol, range);
+        return mockStockDataService.getHistoricalPrices(tickerSymbol, range, alphaVantageApiKey);
     }
 
     public Stock getStockEntityById(Long id) {
